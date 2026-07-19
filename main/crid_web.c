@@ -107,8 +107,7 @@ static void dns_server_task(void *pvParameters) {
 /* ================================================================
  * Embedded Web Page
  * ================================================================ */
-static const char web_index_html_start[] = 
-// Embedded HTML via EMBED_TXTFILES
+// Embedded HTML from EMBED_TXTFILES
 extern const char web_index_html_start[] asm("_binary_web_index_html_start");
 extern const char web_index_html_end[]   asm("_binary_web_index_html_end");
 ;
@@ -206,24 +205,24 @@ static esp_err_t api_drones_get(httpd_req_t *req) {
             cJSON_AddNumberToObject(item, "rssi", table[i].last_rssi);
             
             if (table[i].basic_id.valid && table[i].basic_id.ua_type != ODID_UATYPE_NONE) {
-                cJSON_AddStringToObject(item, "id", table[i].basic_id.ua_id_str);
+                cJSON_AddStringToObject(item, "id", table[i].basic_id.uas_id);
                 cJSON_AddStringToObject(item, "id_type", id_type_text(table[i].basic_id.id_type));
-                cJSON_AddStringToObject(item, "model", table[i].basic_id.ua_id_str);
+                cJSON_AddStringToObject(item, "model", table[i].basic_id.uas_id);
             }
             if (table[i].location.valid) {
-                cJSON_AddNumberToObject(item, "latitude", table[i].location.latitude_d);
-                cJSON_AddNumberToObject(item, "longitude", table[i].location.longitude_d);
-                cJSON_AddNumberToObject(item, "altitude_msl", table[i].location.altitude_msl);
-                cJSON_AddNumberToObject(item, "altitude_agl", table[i].location.altitude_agl);
+                cJSON_AddNumberToObject(item, "latitude", table[i].location.latitude);
+                cJSON_AddNumberToObject(item, "longitude", table[i].location.longitude);
+                cJSON_AddNumberToObject(item, "altitude_geo", table[i].location.altitude_geo);
+                cJSON_AddNumberToObject(item, "altitude_geo", table[i].location.altitude_geo);
                 cJSON_AddNumberToObject(item, "speed_h", table[i].location.speed_horizontal);
                 cJSON_AddNumberToObject(item, "speed_v", table[i].location.speed_vertical);
-                cJSON_AddNumberToObject(item, "heading", table[i].location.track_direction);
+                cJSON_AddNumberToObject(item, "heading", table[i].location.direction);
                 cJSON_AddStringToObject(item, "status_text", status_text(table[i].location.status));
             }
             if (table[i].operator_id.valid) {
-                cJSON_AddStringToObject(item, "operator_id", table[i].operator_id.operator_id_str);
-                cJSON_AddNumberToObject(item, "operator_lat", table[i].operator_id.operator_latitude_d);
-                cJSON_AddNumberToObject(item, "operator_lon", table[i].operator_id.operator_longitude_d);
+                cJSON_AddStringToObject(item, "operator_id", table[i].operator_id.id);
+                cJSON_AddNumberToObject(item, "operator_lat", table[i].system.operator_latitude);
+                cJSON_AddNumberToObject(item, "operator_lon", table[i].system.operator_longitude);
             }
             cJSON_AddStringToObject(item, "protocol_name", protocol_name(table[i].protocol));
             cJSON_AddNumberToObject(item, "first_seen", table[i].first_seen_ms);
@@ -254,23 +253,23 @@ static esp_err_t api_drones_get(httpd_req_t *req) {
         cJSON_AddNumberToObject(item, "rssi", uav->last_rssi);
         
         if (uav->basic_id.valid && uav->basic_id.ua_type != ODID_UATYPE_NONE) {
-            cJSON_AddStringToObject(item, "id", uav->basic_id.ua_id_str);
-            cJSON_AddStringToObject(item, "model", uav->basic_id.ua_id_str);
+            cJSON_AddStringToObject(item, "id", uav->basic_id.uas_id);
+            cJSON_AddStringToObject(item, "model", uav->basic_id.uas_id);
         }
         if (uav->location.valid) {
-            cJSON_AddNumberToObject(item, "latitude", uav->location.latitude_d);
-            cJSON_AddNumberToObject(item, "longitude", uav->location.longitude_d);
-            cJSON_AddNumberToObject(item, "altitude_msl", uav->location.altitude_msl);
-            cJSON_AddNumberToObject(item, "altitude_agl", uav->location.altitude_agl);
+            cJSON_AddNumberToObject(item, "latitude", uav->location.latitude);
+            cJSON_AddNumberToObject(item, "longitude", uav->location.longitude);
+            cJSON_AddNumberToObject(item, "altitude_geo", uav->location.altitude_geo);
+            cJSON_AddNumberToObject(item, "altitude_geo", uav->location.altitude_geo);
             cJSON_AddNumberToObject(item, "speed_h", uav->location.speed_horizontal);
             cJSON_AddNumberToObject(item, "speed_v", uav->location.speed_vertical);
-            cJSON_AddNumberToObject(item, "heading", uav->location.track_direction);
+            cJSON_AddNumberToObject(item, "heading", uav->location.direction);
             cJSON_AddStringToObject(item, "status_text", status_text(uav->location.status));
         }
         if (uav->operator_id.valid) {
-            cJSON_AddStringToObject(item, "operator_id", uav->operator_id.operator_id_str);
-            cJSON_AddNumberToObject(item, "operator_lat", uav->operator_id.operator_latitude_d);
-            cJSON_AddNumberToObject(item, "operator_lon", uav->operator_id.operator_longitude_d);
+            cJSON_AddStringToObject(item, "operator_id", uav->operator_id.id);
+            cJSON_AddNumberToObject(item, "operator_lat", uav->system.operator_latitude);
+            cJSON_AddNumberToObject(item, "operator_lon", uav->system.operator_longitude);
         }
         cJSON_AddStringToObject(item, "protocol_name", protocol_name(uav->protocol));
         cJSON_AddNumberToObject(item, "first_seen", uav->first_seen_ms);
@@ -327,8 +326,8 @@ static esp_err_t api_sim_config_get(httpd_req_t *req) {
     cJSON_AddNumberToObject(root, "ua_type", g_sim_config.ua_type);
     cJSON_AddNumberToObject(root, "latitude", g_sim_config.latitude);
     cJSON_AddNumberToObject(root, "longitude", g_sim_config.longitude);
-    cJSON_AddNumberToObject(root, "altitude_msl", g_sim_config.altitude_msl);
-    cJSON_AddNumberToObject(root, "altitude_agl", g_sim_config.altitude_agl);
+    cJSON_AddNumberToObject(root, "altitude_geo", g_sim_config.altitude_geo);
+    cJSON_AddNumberToObject(root, "altitude_geo", g_sim_config.altitude_geo);
     cJSON_AddNumberToObject(root, "speed_horizontal", g_sim_config.speed_horizontal);
     cJSON_AddNumberToObject(root, "speed_vertical", g_sim_config.speed_vertical);
     cJSON_AddNumberToObject(root, "heading", g_sim_config.heading);
@@ -370,10 +369,10 @@ static esp_err_t api_sim_config_post(httpd_req_t *req) {
             if (item && cJSON_IsNumber(item)) g_sim_config.latitude = (float)item->valuedouble;
             item = cJSON_GetObjectItem(json, "longitude");
             if (item && cJSON_IsNumber(item)) g_sim_config.longitude = (float)item->valuedouble;
-            item = cJSON_GetObjectItem(json, "altitude_msl");
-            if (item && cJSON_IsNumber(item)) g_sim_config.altitude_msl = (float)item->valuedouble;
-            item = cJSON_GetObjectItem(json, "altitude_agl");
-            if (item && cJSON_IsNumber(item)) g_sim_config.altitude_agl = (float)item->valuedouble;
+            item = cJSON_GetObjectItem(json, "altitude_geo");
+            if (item && cJSON_IsNumber(item)) g_sim_config.altitude_geo = (float)item->valuedouble;
+            item = cJSON_GetObjectItem(json, "altitude_geo");
+            if (item && cJSON_IsNumber(item)) g_sim_config.altitude_geo = (float)item->valuedouble;
             item = cJSON_GetObjectItem(json, "speed_horizontal");
             if (item && cJSON_IsNumber(item)) g_sim_config.speed_horizontal = (float)item->valuedouble;
             item = cJSON_GetObjectItem(json, "speed_vertical");
@@ -415,7 +414,7 @@ static esp_err_t api_clear_cache_post(httpd_req_t *req) {
  * ================================================================ */
 static esp_err_t root_handler(httpd_req_t *req) {
     httpd_resp_set_type(req, "text/html");
-    httpd_resp_send(req, INDEX_HTML, HTTPD_RESP_USE_STRLEN);
+    httpd_resp_send(req, web_index_html_start, HTTPD_RESP_USE_STRLEN);
     return ESP_OK;
 }
 
