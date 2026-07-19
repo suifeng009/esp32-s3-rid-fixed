@@ -212,7 +212,7 @@ static esp_err_t api_drones_get(httpd_req_t *req) {
             if (table[i].location.valid) {
                 cJSON_AddNumberToObject(item, "latitude", table[i].location.latitude);
                 cJSON_AddNumberToObject(item, "longitude", table[i].location.longitude);
-                cJSON_AddNumberToObject(item, "altitude_geo", table[i].location.altitude_geo);
+                cJSON_AddNumberToObject(item, "altitude_msl", table[i].location.altitude_geo);
                 cJSON_AddNumberToObject(item, "altitude_geo", table[i].location.altitude_geo);
                 cJSON_AddNumberToObject(item, "speed_h", table[i].location.speed_horizontal);
                 cJSON_AddNumberToObject(item, "speed_v", table[i].location.speed_vertical);
@@ -259,7 +259,7 @@ static esp_err_t api_drones_get(httpd_req_t *req) {
         if (uav->location.valid) {
             cJSON_AddNumberToObject(item, "latitude", uav->location.latitude);
             cJSON_AddNumberToObject(item, "longitude", uav->location.longitude);
-            cJSON_AddNumberToObject(item, "altitude_geo", uav->location.altitude_geo);
+            cJSON_AddNumberToObject(item, "altitude_msl", uav->location.altitude_geo);
             cJSON_AddNumberToObject(item, "altitude_geo", uav->location.altitude_geo);
             cJSON_AddNumberToObject(item, "speed_h", uav->location.speed_horizontal);
             cJSON_AddNumberToObject(item, "speed_v", uav->location.speed_vertical);
@@ -326,8 +326,8 @@ static esp_err_t api_sim_config_get(httpd_req_t *req) {
     cJSON_AddNumberToObject(root, "ua_type", g_sim_config.ua_type);
     cJSON_AddNumberToObject(root, "latitude", g_sim_config.latitude);
     cJSON_AddNumberToObject(root, "longitude", g_sim_config.longitude);
-    cJSON_AddNumberToObject(root, "altitude_geo", g_sim_config.altitude_geo);
-    cJSON_AddNumberToObject(root, "altitude_geo", g_sim_config.altitude_geo);
+    cJSON_AddNumberToObject(root, "altitude_msl", g_sim_config.altitude_msl);
+    cJSON_AddNumberToObject(root, "altitude_msl", g_sim_config.altitude_msl);
     cJSON_AddNumberToObject(root, "speed_horizontal", g_sim_config.speed_horizontal);
     cJSON_AddNumberToObject(root, "speed_vertical", g_sim_config.speed_vertical);
     cJSON_AddNumberToObject(root, "heading", g_sim_config.heading);
@@ -370,9 +370,9 @@ static esp_err_t api_sim_config_post(httpd_req_t *req) {
             item = cJSON_GetObjectItem(json, "longitude");
             if (item && cJSON_IsNumber(item)) g_sim_config.longitude = (float)item->valuedouble;
             item = cJSON_GetObjectItem(json, "altitude_geo");
-            if (item && cJSON_IsNumber(item)) g_sim_config.altitude_geo = (float)item->valuedouble;
+            if (item && cJSON_IsNumber(item)) g_sim_config.altitude_msl = (float)item->valuedouble;
             item = cJSON_GetObjectItem(json, "altitude_geo");
-            if (item && cJSON_IsNumber(item)) g_sim_config.altitude_geo = (float)item->valuedouble;
+            if (item && cJSON_IsNumber(item)) g_sim_config.altitude_msl = (float)item->valuedouble;
             item = cJSON_GetObjectItem(json, "speed_horizontal");
             if (item && cJSON_IsNumber(item)) g_sim_config.speed_horizontal = (float)item->valuedouble;
             item = cJSON_GetObjectItem(json, "speed_vertical");
