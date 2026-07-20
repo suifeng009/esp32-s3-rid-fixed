@@ -1,4 +1,4 @@
-﻿/*
+/*
 Copyright (C) 2020 Simon Wunderlich, Marek Sobe
 Copyright (C) 2020 Doodle Labs
 

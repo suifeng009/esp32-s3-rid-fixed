@@ -1,4 +1,4 @@
-﻿/*
+/*
 Copyright (C) 2019 Intel Corporation
 
 SPDX-License-Identifier: Apache-2.0
@@ -1406,7 +1406,7 @@ void printAuth_data(ODID_Auth_data *Auth)
     if (Auth->DataPage == 0) {
         const char ODID_Auth_data_format[] =
             "AuthType: %d\nDataPage: %d\nLastPageIndex: %d\nLength: %d\n"\
-            "Timestamp: %" PRIu32 "\\nAuthData: ";
+            "Timestamp: %" PRIu32 "\nAuthData: ";
         printf(ODID_Auth_data_format, Auth->AuthType, Auth->DataPage,
                Auth->LastPageIndex, Auth->Length, Auth->Timestamp);
         for (int i = 0; i < ODID_AUTH_PAGE_ZERO_DATA_SIZE; i++)

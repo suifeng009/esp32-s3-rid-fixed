@@ -1,4 +1,4 @@
-﻿#include "index_html.h"
+#include "index_html.h"
 #include "crid_web.h"
 #include "crid_rx_types.h"
 #include "crid_tracker.h"
@@ -149,9 +149,9 @@ static void mac_to_str(const uint8_t *mac, char *buf, size_t sz) {
 // Get protocol name string
 static const char *protocol_name(uint8_t proto) {
     switch (proto) {
-        case 1: return "Ground";
-        case 2: return "Takeoff";
-        case 3: return "In Flight";
+        case 1: return "GB 42590";
+        case 2: return "GB 46750";
+        case 3: return "ASTM F3411";
         default: return "Unknown";
     }
 }
@@ -161,20 +161,20 @@ static const char *status_text(uint8_t status) {
     switch (status) {
         case 0: return "Undeclared";
         case 1: return "Ground";
-        case 2: return "Takeoff";
-        case 3: return "In Flight";
-        case 4: return "Landing";
+        case 2: return "Airborne";
+        case 3: return "Emergency";
+        case 4: return "Failure";
         default: return "Unknown";
     }
 }
 
 static const char *id_type_text(uint8_t id_type) {
     switch (id_type) {
-        case 0: return "Undeclared";
-        case 1: return "Ground";
-        case 2: return "Takeoff";
-        case 3: return "In Flight";
-        case 4: return "Landing";
+        case 0: return "None";
+        case 1: return "Serial Number";
+        case 2: return "CAA Registration";
+        case 3: return "UTM ID";
+        case 4: return "Specific Session";
         default: return "Unknown";
     }
 }
