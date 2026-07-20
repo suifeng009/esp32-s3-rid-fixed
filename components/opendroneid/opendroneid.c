@@ -1453,7 +1453,7 @@ void printSystem_data(ODID_System_data *System_data)
         System_data->AreaCount, System_data->AreaRadius,
         (double) System_data->AreaCeiling, (double) System_data->AreaFloor,
         System_data->CategoryEU, System_data->ClassEU,
-        (double) System_data->OperatorAltitudeGeo, System_data->Timestamp);
+        (double) System_data->OperatorAltitudeGeo, (unsigned int)System_data->Timestamp);
 }
 
 /**
