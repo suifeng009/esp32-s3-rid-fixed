@@ -1,7 +1,7 @@
 /**
- * crid_parser_astm.c 鈥?ASTM F3411 鍗忚瑙ｆ瀽妯″潡
+ * crid_parser_astm.c - ASTM F3411 协议解析模块
  *
- * 涓撻棬澶勭悊 ASTM F3411 鍗忚鐨勬暟鎹В鏋? */
+ * 专门处理 ASTM F3411 协议的数据 */
 #include <string.h>
 #include "esp_log.h"
 #include "opendroneid.h"
@@ -35,7 +35,7 @@ static inline int32_t le32s(const uint8_t *p) {
  * ================================================================ */
 
 /**
- * 瑙ｆ瀽 ASTM F3411 鍗忚鏁版嵁
+ * 解析 ASTM F3411 协议数据
  */
 bool crid_parser_decode_astm(uav_track_t *uav, const uint8_t *data, uint8_t len) {
     if (!data || len < 1) return false;
@@ -54,7 +54,7 @@ bool crid_parser_decode_astm(uav_track_t *uav, const uint8_t *data, uint8_t len)
         }
     }
 
-    /* 绛栫暐 4: ASTM 鍗曟秷鎭牸寮?(Fallback) - 鐩存帴浠?data[0] 寮€濮?*/
+    /* 策略 4: ASTM 单消息 (Fallback) - 直接解析 data[0]*/
     {
         ODID_messagetype_t t0 = decodeMessageType(data[0]);
         if (t0 >= ODID_MESSAGETYPE_BASIC_ID && t0 <= ODID_MESSAGETYPE_OPERATOR_ID) {

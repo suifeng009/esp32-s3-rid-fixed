@@ -1,7 +1,7 @@
 /**
- * crid_parser_common.c 鈥?鍗忚瑙ｆ瀽閫氱敤妯″潡
+ * crid_parser_common.c - 协议解析通用模块
  *
- * 鍖呭惈鎵€鏈夊崗璁叡鐢ㄧ殑閫氱敤鍔熻兘
+ * 包含协议解析的通用功能
  */
 
 #include <string.h>
@@ -15,17 +15,17 @@
 // static const char *TAG = "unused";
 
 /*
- * Debug 寮€鍏筹細璁句负 1 鏃讹紝鍦ㄨВ鏋愬墠鎵撳嵃鍘熷鏁版嵁鍗佸叚杩涘埗杞偍
+ * Debug 开关：设为 1 时，在解析前打印原数据十六进制数据
  * ================================================================ */
 #ifndef PARSER_DEBUG_HEX_DUMP
 #define PARSER_DEBUG_HEX_DUMP   0
 #endif
 
 /* ================================================================
- * Debug 杈呭姪锛氬崄鍏繘鍒惰浆鍌? * ================================================================ */
+ * Debug 辅助：十六进制转储 * ================================================================ */
 #if PARSER_DEBUG_HEX_DUMP
 static void hex_dump(const char *tag, const char *prefix, const uint8_t *data, uint8_t len) {
-    /* 鏍煎紡: <prefix> [len] AA BB CC DD ... (姣忚鏈€澶?16 瀛楄妭) */
+    /* 格式: <prefix> [len] AA BB CC DD ... (每?16 字节) */
     char line[128];
     int pos = 0;
     pos += snprintf(line + pos, sizeof(line) - pos, "%s [%u] ", prefix, len);
@@ -43,7 +43,7 @@ static void hex_dump(const char *tag, const char *prefix, const uint8_t *data, u
 #endif
 
 /* ================================================================
- * 涓昏В鏋愬叆鍙ｏ細绛栫暐鍒嗗彂 (鍚槻璇垽鍋ュ悍妫€鏌?
+ * 主解析入口：策略分发
  * ================================================================ */
 rid_protocol_t crid_parser_decode(uav_track_t *uav, const uint8_t *data, uint8_t len) {
     if (!data || len < 1) return RID_PROTOCOL_UNKNOWN;
@@ -51,24 +51,24 @@ rid_protocol_t crid_parser_decode(uav_track_t *uav, const uint8_t *data, uint8_t
     hex_dump(TAG,"Beacon Payload HEX", data, len);
     #endif
 
-    /* 瑙ｆ瀽骞跺垽鏂崗璁被鍨?*/
+    /* 解析并判断协议类型 */
 
-    // 灏濊瘯瑙ｆ瀽 GB 46750 鍗忚
+    // 尝试解析 GB 46750 协议
     if (crid_parser_decode_gb46750(uav, data, len)) {
         return RID_PROTOCOL_GB46750;
     }
 
-    // 灏濊瘯瑙ｆ瀽 GB 42590 鍗忚
+    // 尝试解析 GB 42590 协议
     if (crid_parser_decode_gb42590(uav, data, len)) {
         return RID_PROTOCOL_GB42590;
     }
 
-    // 灏濊瘯瑙ｆ瀽 ASTM F3411 鍗忚
+    // 尝试解析 ASTM F3411 协议
     if (crid_parser_decode_astm(uav, data, len)) {
         return RID_PROTOCOL_ASTM_F3411;
     }
 
-    /* 瑙ｆ瀽澶辫触缁熻 */
+    /* 解析失败统计 */
     static uint32_t s_fail_count = 0;
     if ((++s_fail_count & 0x1F) == 0) {
         json_decode_fail(data[0], (len > 1 ? data[1] : 0), len);
@@ -77,7 +77,7 @@ rid_protocol_t crid_parser_decode(uav_track_t *uav, const uint8_t *data, uint8_t
 }
 
 /* ================================================================
- * 鍒嗗眰鏁版嵁鎻愬彇 (GB 46750 浼樺厛锛屽惁鍒欒蛋 ASTM 鏍囧噯瀛楁)
+ * 分层数据提取 (GB 46750 优先，否则走 ASTM 标准字段)
  * ================================================================ */
 void crid_parser_extract_layered(uav_track_t *uav) {
     if (!uav) return;
@@ -91,7 +91,7 @@ void crid_parser_extract_layered(uav_track_t *uav) {
             uav->basic_id.id_type = ODID_IDTYPE_SERIAL_NUMBER;
             uav->basic_id.ua_type = gb->has_ua_category ? gb->ua_category : ODID_UATYPE_HELICOPTER_OR_MULTIROTOR;
 
-            // [鍏抽敭淇] 瀛楃涓插畨鍏ㄥ噣鍖栵細鍓旈櫎 \x01 绛変笉鍙鎺у埗瀛楃锛岀‘淇?JSON 杈撳嚭骞插噣
+            // [关键修复] 字符串安全净化：剔除 \x01 等不可见控制字符，确保 JSON 输出干净
             char *dst = uav->basic_id.uas_id;
             const char *src = gb->unique_id;
             int i = 0;
@@ -126,7 +126,7 @@ void crid_parser_extract_layered(uav_track_t *uav) {
             uav->location.valid = true;
         }
 
-        /* 閬ユ帶绔欎俊鎭?*/
+        /* 遥控站信息*/
         if (gb->has_rcs_loc_type) uav->system.operator_location_type = gb->rcs_loc_type;
         EXTRACT_IF(gb->has_rcs_location, uav->system.operator_latitude,  gb->rcs_latitude);
         EXTRACT_IF(gb->has_rcs_location, uav->system.operator_longitude, gb->rcs_longitude);
@@ -136,7 +136,7 @@ void crid_parser_extract_layered(uav_track_t *uav) {
         return;
     }
 
-    /* --- ASTM / GB 42590 鏍囧噯瀛楁鏄犲皠 --- */
+    /* --- ASTM / GB 42590 标准字段映射 --- */
     #define MAP_ODID_FIELD(dst, src, valid_cond) \
         do { if (valid_cond) { (dst) = (uint8_t)(src); } } while(0)
 

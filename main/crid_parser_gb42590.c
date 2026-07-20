@@ -1,7 +1,7 @@
 /**
- * crid_parser_gb42590.c 鈥?GB 42590 鍗忚瑙ｆ瀽妯″潡
+ * crid_parser_gb42590.c - GB 42590 协议解析模块
  *
- * 涓撻棬澶勭悊 GB 42590-2023 鍗忚鐨勬暟鎹В鏋? */
+ * 专门处理 GB 42590-2023 协议的数据 */
 
 #include <string.h>
 #include "esp_log.h"
@@ -51,7 +51,7 @@ static bool decode_gb_format(uav_track_t *uav, const uint8_t *data, uint8_t len)
     uint8_t gb_expected_len        = gb_msg_count * ASTM_MSG_SIZE;
     if (gb_msg_data_len < gb_expected_len) return false;
 
-    // 鏋勯€?ASTM 鍏煎鐨?ODID_MessagePack_encoded 澶撮儴
+    // 构造 ASTM 兼容 ODID_MessagePack_encoded 头部
     uint8_t tmp_pack[sizeof(ODID_MessagePack_encoded)];
     size_t tmp_pack_size = sizeof(ODID_MessagePack_encoded) -
                            ASTM_MSG_SIZE * (ASTM_PACK_MAX_MSGS - gb_msg_count);
@@ -72,7 +72,7 @@ static bool decode_gb_format(uav_track_t *uav, const uint8_t *data, uint8_t len)
 }
 
 /**
- * 瑙ｆ瀽 GB 42590 鍗忚鏁版嵁
+ * 解析 GB 42590 协议数据
  */
 bool crid_parser_decode_gb42590(uav_track_t *uav, const uint8_t *data, uint8_t len) {
     if (!data || len < 1) return false;

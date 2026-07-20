@@ -157,7 +157,7 @@ static const char INDEX_HTML[] =
 "function startRefresh(){if(refreshTimer)clearInterval(refreshTimer);refreshTimer=setInterval(function(){if(currentTab===\"dashboard\")loadDashboard();if(currentTab===\"simulator\")loadSimConfig()},5000)}\n"
 "\n"
 "// Load JSZip from CDN\n"
-"var script=document.createElement(\"script\");script.src=\"https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js\";script.onload=function(){loadDashboard();loadSimConfig();startRefresh()};document.head.appendChild(script);\n"
+"var script=document.createElement(\"script\");script.src=\"https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js\";document.head.appendChild(script);loadDashboard();loadSimConfig();startRefresh();\n"
 "</script>\n"
 "</body>\n"
 "</html>\n";
