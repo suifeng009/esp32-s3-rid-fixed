@@ -1,8 +1,7 @@
-/**
- * crid_parser_gb46750.c — GB 46750-2025 协议解析模块
+﻿/**
+ * crid_parser_gb46750.c 鈥?GB 46750-2025 鍗忚瑙ｆ瀽妯″潡
  *
- * 专门处理 GB 46750-2025 协议的数据解析
- */
+ * 涓撻棬澶勭悊 GB 46750-2025 鍗忚鐨勬暟鎹В鏋? */
 
 #include <string.h>
 #include "esp_log.h"
@@ -12,10 +11,10 @@
 #include "crid_json.h"
 #include "crid_rx_types.h"
 
-static const char *TAG = "RID_GB46750";
+// static const char *TAG = "unused";
 
 /* ================================================================
- * 常量与宏定义
+ * 甯搁噺涓庡畯瀹氫箟
  * ================================================================ */
 #define GB46750_MAGIC           0xFF
 #define GB46750_VER_MAJOR_MASK  0x07
@@ -24,7 +23,7 @@ static const char *TAG = "RID_GB46750";
 #define GB46750_VALID_MAJOR     0x01
 #define GB46750_HEADER_LEN      6   /* Magic(1)+Ver(1)+Len(1)+Flags(3) */
 
-/* 物理量合理性校验宏 (防止错位读取产生荒谬值) */
+/* 鐗╃悊閲忓悎鐞嗘€ф牎楠屽畯 (闃叉閿欎綅璇诲彇浜х敓鑽掕艾鍊? */
 #define IS_VALID_LAT(lat)       ((lat) >= -90.0f && (lat) <= 90.0f)
 #define IS_VALID_LON(lon)       ((lon) >= -180.0f && (lon) <= 180.0f)
 #define IS_VALID_SPEED(speed)   ((speed) >= 0.0f && (speed) <= 300.0f)
@@ -32,7 +31,7 @@ static const char *TAG = "RID_GB46750";
 #define IS_VALID_HEIGHT(h)      ((h) >= -1000.0f && (h) <= 10000.0f)
 
 /* ================================================================
- * 内部辅助函数
+ * 鍐呴儴杈呭姪鍑芥暟
  * ================================================================ */
 static inline uint16_t le16(const uint8_t *p) {
     return (uint16_t)p[0] | ((uint16_t)p[1] << 8);
@@ -44,30 +43,27 @@ static inline int32_t le32s(const uint8_t *p) {
 }
 
 /**
- * 高度解码：编码值 = (实际值 + 1000) × 2，分辨率 0.5m
- * 编码值 == 0 或 0xFFFF 表示未知
+ * 楂樺害瑙ｇ爜锛氱紪鐮佸€?= (瀹為檯鍊?+ 1000) 脳 2锛屽垎杈ㄧ巼 0.5m
+ * 缂栫爜鍊?== 0 鎴?0xFFFF 琛ㄧず鏈煡
  */
 static inline bool decode_alt_2byte(const uint8_t *p, float *out) {
     uint16_t raw = le16(p);
 
-    // 增加对 0xFFFF 的校验（国标中 0xFFFF 通常也代表无效/未知）
-    if (raw == 0 || raw == 0xFFFF) {
+    // 澧炲姞瀵?0xFFFF 鐨勬牎楠岋紙鍥芥爣涓?0xFFFF 閫氬父涔熶唬琛ㄦ棤鏁?鏈煡锛?    if (raw == 0 || raw == 0xFFFF) {
         *out = 0.0f;
         return false;
     }
 
     *out = (raw / 2.0f) - 1000.0f;
 
-    // 优化日志：直接打印完整的 raw 十六进制，以及拆解的字节序，方便比对
+    // 浼樺寲鏃ュ織锛氱洿鎺ユ墦鍗板畬鏁寸殑 raw 鍗佸叚杩涘埗锛屼互鍙婃媶瑙ｇ殑瀛楄妭搴忥紝鏂逛究姣斿
     //ESP_LOGI(TAG, "Height: raw=0x%04X (bytes: %02X %02X) => alt=%.2f m",              raw, p[0], p[1], *out);
 
     return true;
 }
 
 /**
- * 经纬度解码：8 字节小端序，int32 × 1e-7 度
- * 返回 true 表示经纬度在合理范围内
- */
+ * 缁忕含搴﹁В鐮侊細8 瀛楄妭灏忕搴忥紝int32 脳 1e-7 搴? * 杩斿洖 true 琛ㄧず缁忕含搴﹀湪鍚堢悊鑼冨洿鍐? */
 static inline bool decode_lon_lat(const uint8_t *p, float *lon, float *lat) {
     *lon = le32s(&p[0]) / 1e7;
     *lat = le32s(&p[4]) / 1e7;
@@ -75,7 +71,7 @@ static inline bool decode_lon_lat(const uint8_t *p, float *lon, float *lat) {
 }
 
 /* ================================================================
- * GB 46750-2025 数据内容解析
+ * GB 46750-2025 鏁版嵁鍐呭瑙ｆ瀽
  * ================================================================ */
 static int decode_gb46750_payload(gb46750_data_t *gb,
                                   const uint8_t *flags, uint8_t num_flags,
@@ -86,7 +82,7 @@ static int decode_gb46750_payload(gb46750_data_t *gb,
 
     for (uint8_t byte_idx = 0; byte_idx < num_flags && byte_idx < 3; byte_idx++) {
         uint8_t flag = flags[byte_idx];
-        // 按位从高到低 (0x80→0x02) 解析，bit 0 (0x01) 为扩展标志位
+        // 鎸変綅浠庨珮鍒颁綆 (0x80鈫?x02) 瑙ｆ瀽锛宐it 0 (0x01) 涓烘墿灞曟爣蹇椾綅
         for (int8_t bit = 7; bit >= 1; bit--) {
             if (!(flag & (1U << bit))) continue;
 
@@ -94,7 +90,7 @@ static int decode_gb46750_payload(gb46750_data_t *gb,
             // ESP_LOGI(TAG, "item_id %02d, offset: %d", item_id, offset);
             // hex_dump(TAG, "Content_RAW", &content[offset],  8);
             switch (item_id) {
-                /* 标识字节 1 */
+                /* 鏍囪瘑瀛楄妭 1 */
                 case 0x07:
                     if (offset + 20 > content_len) return items_parsed;
                     memcpy(gb->unique_id, &content[offset], 20);
@@ -130,7 +126,7 @@ static int decode_gb46750_payload(gb46750_data_t *gb,
                 case 0x02:
                     if (offset + 8 > content_len) return items_parsed;
                     {
-                        // 使用独立的局部变量，避免与其他 case 的 lon/lat 冲突
+                        // 浣跨敤鐙珛鐨勫眬閮ㄥ彉閲忥紝閬垮厤涓庡叾浠?case 鐨?lon/lat 鍐茬獊
                         float rcs_lon = le32s(&content[offset]) / 1e7;
                         float rcs_lat = le32s(&content[offset + 4]) / 1e7;
                         if (IS_VALID_LAT(rcs_lat) && IS_VALID_LON(rcs_lon)) {
@@ -157,12 +153,11 @@ static int decode_gb46750_payload(gb46750_data_t *gb,
                     offset += 2;
                     break;
 
-                /* 标识字节 2 */
+                /* 鏍囪瘑瀛楄妭 2 */
                 case 0x0F:
                     if (offset + 8 > content_len) return items_parsed;
                     {
-                        // 使用独立的局部变量
-                        float uav_lon = le32s(&content[offset]) / 1e7;
+                        // 浣跨敤鐙珛鐨勫眬閮ㄥ彉閲?                        float uav_lon = le32s(&content[offset]) / 1e7;
                         float uav_lat = le32s(&content[offset + 4]) / 1e7;
                         if (IS_VALID_LAT(uav_lat) && IS_VALID_LON(uav_lon)) {
                             gb->uav_longitude = uav_lon;
@@ -241,7 +236,7 @@ static int decode_gb46750_payload(gb46750_data_t *gb,
                     offset += 2;
                     break;
 
-                /* 标识字节 3 */
+                /* 鏍囪瘑瀛楄妭 3 */
                 case 0x17:
                     if (offset + 1 > content_len) return items_parsed;
                     gb->operation_status = content[offset];
@@ -294,7 +289,7 @@ static int decode_gb46750_payload(gb46750_data_t *gb,
             }
             items_parsed++;
         }
-        // 记录扩展标志位 (bit 0)
+        // 璁板綍鎵╁睍鏍囧織浣?(bit 0)
         if (flag & 0x01) {
             if (byte_idx == 0) gb->has_ext_byte1 = true;
             else if (byte_idx == 1) gb->has_ext_byte2 = true;
@@ -309,12 +304,12 @@ static int decode_gb46750_payload(gb46750_data_t *gb,
 }
 
 /**
- * 解析 GB 46750 协议数据
+ * 瑙ｆ瀽 GB 46750 鍗忚鏁版嵁
  */
 bool crid_parser_decode_gb46750(uav_track_t *uav, const uint8_t *data, uint8_t len) {
     if (!data || len < 1) return false;
 
-    /* 策略 1: GB 46750-2025 (无 Counter 字节) */
+    /* 绛栫暐 1: GB 46750-2025 (鏃?Counter 瀛楄妭) */
     if (len >= GB46750_HEADER_LEN && data[0] == GB46750_MAGIC) {
         uint8_t version     = data[1];
         uint8_t major_ver   = (version >> GB46750_VER_MAJOR_SHIFT) & GB46750_VER_MAJOR_MASK;
@@ -325,7 +320,7 @@ bool crid_parser_decode_gb46750(uav_track_t *uav, const uint8_t *data, uint8_t l
         if (major_ver == GB46750_VALID_MAJOR && content_len <= (len - GB46750_HEADER_LEN)) {
             int items = decode_gb46750_payload(&uav->gb46750, flags, 3, content, content_len);
 
-            // [关键修复] 健康检查：防止将非 GB46750 数据误判为此协议
+            // [鍏抽敭淇] 鍋ュ悍妫€鏌ワ細闃叉灏嗛潪 GB46750 鏁版嵁璇垽涓烘鍗忚
             if (uav->gb46750.has_unique_id) {
                 bool has_printable = false;
                 for (int i = 0; i < 20; i++) {
@@ -335,7 +330,7 @@ bool crid_parser_decode_gb46750(uav_track_t *uav, const uint8_t *data, uint8_t l
                     }
                 }
                 if (!has_printable) {
-                    // 极可能是误判 (如 ASTM 包碰巧满足条件)，重置并继续尝试其他协议
+                    // 鏋佸彲鑳芥槸璇垽 (濡?ASTM 鍖呯宸ф弧瓒虫潯浠?锛岄噸缃苟缁х画灏濊瘯鍏朵粬鍗忚
                     memset(&uav->gb46750, 0, sizeof(gb46750_data_t));
                     items = 0;
                 }

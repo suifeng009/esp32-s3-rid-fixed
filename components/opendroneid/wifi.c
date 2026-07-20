@@ -1,4 +1,4 @@
-/*
+﻿/*
 Copyright (C) 2020 Simon Wunderlich, Marek Sobe
 Copyright (C) 2020 Doodle Labs
 
@@ -25,6 +25,7 @@ int clock_gettime(clockid_t, struct timespec *);
 
 #include "opendroneid.h"
 #include "odid_wifi.h"
+#include <inttypes.h>
 
 #if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
 #define cpu_to_le16(x)  (x)
@@ -172,7 +173,7 @@ void drone_export_gps_data(ODID_UAS_Data *UAS_Data, char *buf, size_t buf_size)
     mprintf("\t\t\t\"AuthType\": %d,\n", UAS_Data->Auth[0].AuthType);
     mprintf("\t\t\t\"LastPageIndex\": %d,\n", UAS_Data->Auth[0].LastPageIndex);
     mprintf("\t\t\t\"Length\": %d,\n", UAS_Data->Auth[0].Length);
-    mprintf("\t\t\t\"Timestamp\": %u,\n", UAS_Data->Auth[0].Timestamp);
+    mprintf("\t\t\t\"Timestamp\": %" PRIu32 ",\n", UAS_Data->Auth[0].Timestamp);
     for (int i = 0; i <= UAS_Data->Auth[0].LastPageIndex; i++) {
         mprintf("\t\t\t\"AuthData Page %d,\": %s\n", i, UAS_Data->Auth[i].AuthData);
     }
@@ -195,7 +196,7 @@ void drone_export_gps_data(ODID_UAS_Data *UAS_Data, char *buf, size_t buf_size)
     mprintf("\t\t\t\"CategoryEU\": %d,\n", UAS_Data->System.CategoryEU);
     mprintf("\t\t\t\"ClassEU\": %d,\n", UAS_Data->System.ClassEU);
     mprintf("\t\t\t\"OperatorAltitudeGeo\": %f,\n", (double) UAS_Data->System.OperatorAltitudeGeo);
-    mprintf("\t\t\t\"Timestamp\": %u,\n", UAS_Data->System.Timestamp);
+    mprintf("\t\t\t\"Timestamp\": %" PRIu32 ",\n", UAS_Data->System.Timestamp);
     mprintf("\t\t}\n");
 
     mprintf("\t\t\"OperatorID\": {\n");
@@ -320,7 +321,7 @@ int odid_wifi_build_nan_sync_beacon_frame(char *mac, uint8_t *buf, size_t buf_si
     memset(master_indication_attr, 0, sizeof(*master_indication_attr));
     master_indication_attr->header.attribute_id = 0x00;
     master_indication_attr->header.length = cpu_to_le16(0x0002);
-    /* Information that is used to indicate a NAN Device’s preference to serve
+    /* Information that is used to indicate a NAN Device鈥檚 preference to serve
      * as the role of Master, with a larger value indicating a higher
      * preference. Values 1 and 255 are used for testing purposes only.
      */

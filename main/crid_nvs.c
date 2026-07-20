@@ -1,4 +1,4 @@
-#include "crid_nvs.h"
+﻿#include "crid_nvs.h"
 #include <string.h>
 #include <stdio.h>
 #include "nvs_flash.h"
@@ -8,7 +8,7 @@
 static const char *TAG = "CRID_NVS";
 static const char *NVS_NS = "crid_cache";
 static nvs_handle_t g_nvs;
-static int g_count = 0;
+static int32_t g_count = 0;
 
 void crid_nvs_init(void) {
     esp_err_t err = nvs_open(NVS_NS, NVS_READWRITE, &g_nvs);

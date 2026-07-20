@@ -1,8 +1,7 @@
-/**
- * crid_parser_astm.c — ASTM F3411 协议解析模块
+﻿/**
+ * crid_parser_astm.c 鈥?ASTM F3411 鍗忚瑙ｆ瀽妯″潡
  *
- * 专门处理 ASTM F3411 协议的数据解析
- */
+ * 涓撻棬澶勭悊 ASTM F3411 鍗忚鐨勬暟鎹В鏋? */
 #include <string.h>
 #include "esp_log.h"
 #include "opendroneid.h"
@@ -11,16 +10,16 @@
 #include "crid_json.h"
 #include "crid_rx_types.h"
 
-static const char *TAG = "RID_ASTM";
+// static const char *TAG = "unused";
 
 #define ASTM_MAGIC              0xF2
-#define ASTM_HEADER_LEN         3   /* Magic(1)+Size(1)+Count(1) - payload 不再包含 Counter */
+#define ASTM_HEADER_LEN         3   /* Magic(1)+Size(1)+Count(1) - payload 涓嶅啀鍖呭惈 Counter */
 #define ASTM_MSG_SIZE           25
 #define ASTM_PACK_MAX_MSGS      ODID_PACK_MAX_MESSAGES
 
 
 /* ================================================================
- * 内部辅助函数
+ * 鍐呴儴杈呭姪鍑芥暟
  * ================================================================ */
 static inline uint16_t le16(const uint8_t *p) {
     return (uint16_t)p[0] | ((uint16_t)p[1] << 8);
@@ -32,17 +31,17 @@ static inline int32_t le32s(const uint8_t *p) {
 }
 
 /* ================================================================
- * ASTM F3411 Packed 格式解析
+ * ASTM F3411 Packed 鏍煎紡瑙ｆ瀽
  * ================================================================ */
 
 /**
- * 解析 ASTM F3411 协议数据
+ * 瑙ｆ瀽 ASTM F3411 鍗忚鏁版嵁
  */
 bool crid_parser_decode_astm(uav_track_t *uav, const uint8_t *data, uint8_t len) {
     if (!data || len < 1) return false;
 
-    /* 策略 2: ASTM F3411 Packed 格式 */
-    /* payload 结构: [Magic(0xF2)][Size(1)][Count(1)][Messages...] */
+    /* 绛栫暐 2: ASTM F3411 Packed 鏍煎紡 */
+    /* payload 缁撴瀯: [Magic(0xF2)][Size(1)][Count(1)][Messages...] */
     if (len >= ASTM_HEADER_LEN && data[0] == ASTM_MAGIC) {
         uint8_t msg_count = data[2];
         size_t pack_size  = sizeof(ODID_MessagePack_encoded) -
@@ -55,7 +54,7 @@ bool crid_parser_decode_astm(uav_track_t *uav, const uint8_t *data, uint8_t len)
         }
     }
 
-    /* 策略 4: ASTM 单消息格式 (Fallback) - 直接从 data[0] 开始 */
+    /* 绛栫暐 4: ASTM 鍗曟秷鎭牸寮?(Fallback) - 鐩存帴浠?data[0] 寮€濮?*/
     {
         ODID_messagetype_t t0 = decodeMessageType(data[0]);
         if (t0 >= ODID_MESSAGETYPE_BASIC_ID && t0 <= ODID_MESSAGETYPE_OPERATOR_ID) {
