@@ -36,7 +36,9 @@ jobs:
         command: idf.py build
 
     - name: Merge Firmware
-      run: esptool.py --chip esp32c3 merge_bin -o build/esp32-c3-rid-combined.bin --flash_mode dio --flash_freq 80m --flash_size 4MB 0x0 build/bootloader/bootloader.bin 0x10000 build/esp32_crid.bin 0x8000 build/partition_table/partition-table.bin
+      run: |
+        sudo chown -R $USER:$USER build
+        esptool.py --chip esp32c3 merge_bin -o build/esp32-c3-rid-combined.bin --flash_mode dio --flash_freq 80m --flash_size 4MB 0x0 build/bootloader/bootloader.bin 0x10000 build/esp32_crid.bin 0x8000 build/partition_table/partition-table.bin
 
     - name: Upload Build Artifacts
       uses: actions/upload-artifact@v4
