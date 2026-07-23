@@ -21,11 +21,6 @@
 
 static const char *TAG = "APRS_BLE";
 
-#define FEND  0xC0
-#define FESC  0xDB
-#define TFEND 0xDC
-#define TFESC 0xDD
-
 static uint16_t conn_handle = BLE_HS_CONN_HANDLE_NONE;
 static uint16_t nus_tx_handle = 0;
 static uint8_t own_addr_type;
@@ -143,32 +138,6 @@ static void ble_host_task(void *param) {
     nimble_port_freertos_deinit();
 }
 
-static size_t build_kiss_frame(const uint8_t *data, size_t len, uint8_t *out_buf, size_t out_max) {
-    size_t out_len = 0;
-    if (out_max < 2) return 0;
-    
-    out_buf[out_len++] = FEND;
-    out_buf[out_len++] = 0x00; 
-    
-    for (size_t i = 0; i < len; i++) {
-        if (out_len + 2 >= out_max) break;
-        if (data[i] == FEND) {
-            out_buf[out_len++] = FESC;
-            out_buf[out_len++] = TFEND;
-        } else if (data[i] == FESC) {
-            out_buf[out_len++] = FESC;
-            out_buf[out_len++] = TFESC;
-        } else {
-            out_buf[out_len++] = data[i];
-        }
-    }
-    
-    if (out_len < out_max) {
-        out_buf[out_len++] = FEND;
-    }
-    return out_len;
-}
-
 static void format_lat_lon(double lat, double lon, char *lat_str, char *lon_str) {
     char lat_dir = (lat >= 0) ? 'N' : 'S';
     char lon_dir = (lon >= 0) ? 'E' : 'W';
@@ -235,12 +204,10 @@ static void aprs_ble_task(void *pvParameters) {
                     if (alt_feet < 0) alt_feet = 0;
                     
                     snprintf(aprs_msg, sizeof(aprs_msg),
-                             "%s>APRS,TCPIP*:!%s/%s^%03d/%03d/A=%06d",
+                             "%s>APRS,TCPIP*:!%s/%s^%03d/%03d/A=%06d\r\n",
                              uav_id, lat_str, lon_str, course, speed_knots, alt_feet);
                              
-                    size_t kiss_len = build_kiss_frame((uint8_t *)aprs_msg, strlen(aprs_msg), kiss_buf, sizeof(kiss_buf));
-                    
-                    ble_notify_data(kiss_buf, kiss_len);
+                    ble_notify_data((const uint8_t *)aprs_msg, strlen(aprs_msg));
                 }
             }
             xSemaphoreGive(mutex);
