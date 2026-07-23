@@ -109,19 +109,22 @@ static int ble_gap_event(struct ble_gap_event *event, void *arg) {
 static void ble_app_advertise(void) {
     struct ble_gap_adv_params adv_params;
     struct ble_hs_adv_fields fields;
+    struct ble_hs_adv_fields rsp_fields;
     
     memset(&fields, 0, sizeof fields);
     fields.flags = BLE_HS_ADV_F_DISC_GEN | BLE_HS_ADV_F_BREDR_UNSUP;
     fields.tx_pwr_lvl_is_present = 1;
     fields.tx_pwr_lvl = BLE_HS_ADV_TX_PWR_LVL_AUTO;
-    fields.name = (uint8_t *)"ESP32_RID_APRS";
-    fields.name_len = strlen("ESP32_RID_APRS");
-    fields.name_is_complete = 1;
     fields.uuids128 = (ble_uuid128_t[]) { gatt_svr_svc_nus_uuid };
     fields.num_uuids128 = 1;
     fields.uuids128_is_complete = 1;
-    
     ble_gap_adv_set_fields(&fields);
+
+    memset(&rsp_fields, 0, sizeof rsp_fields);
+    rsp_fields.name = (uint8_t *)"ESP32_RID_APRS";
+    rsp_fields.name_len = strlen("ESP32_RID_APRS");
+    rsp_fields.name_is_complete = 1;
+    ble_gap_adv_rsp_set_fields(&rsp_fields);
 
     memset(&adv_params, 0, sizeof adv_params);
     adv_params.conn_mode = BLE_GAP_CONN_MODE_UND;
