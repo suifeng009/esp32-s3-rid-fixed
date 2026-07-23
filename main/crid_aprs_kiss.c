@@ -28,6 +28,7 @@ static const char *TAG = "APRS_BLE";
 
 static uint16_t conn_handle = BLE_HS_CONN_HANDLE_NONE;
 static uint16_t nus_tx_handle = 0;
+static uint8_t own_addr_type;
 
 // NUS UUIDs (128-bit)
 // 6E400001-B5A3-F393-E0A9-E50E24DCCA9E
@@ -125,11 +126,11 @@ static void ble_app_advertise(void) {
     memset(&adv_params, 0, sizeof adv_params);
     adv_params.conn_mode = BLE_GAP_CONN_MODE_UND;
     adv_params.disc_mode = BLE_GAP_DISC_MODE_GEN;
-    ble_gap_adv_start(BLE_OWN_ADDR_PUBLIC, NULL, BLE_HS_FOREVER, &adv_params, ble_gap_event, NULL);
+    ble_gap_adv_start(own_addr_type, NULL, BLE_HS_FOREVER, &adv_params, ble_gap_event, NULL);
 }
 
 static void ble_app_on_sync(void) {
-    ble_hs_id_infer_auto(0, NULL);
+    ble_hs_id_infer_auto(0, &own_addr_type);
     ble_app_advertise();
 }
 
