@@ -16,6 +16,7 @@ idf_component_register(
         crid_messages.c
         crid_wifi.c
         crid_patrol.c
+        crid_aprs_kiss.c
     INCLUDE_DIRS "."
     PRIV_REQUIRES opendroneid
     REQUIRES
@@ -34,6 +35,8 @@ idf_component_register(
         cjson
         json
         lwip
+        bt
+        nimble
 )
 
 target_compile_options(${COMPONENT_LIB} PRIVATE -finput-charset=utf-8 -fexec-charset=utf-8)

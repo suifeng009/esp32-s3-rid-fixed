@@ -268,6 +268,9 @@ void app_main(void) {
     crid_tracker_init();
     crid_nvs_init();
 
+    // Init APRS KISS BLE Task
+    crid_aprs_ble_init();
+
     // Init web server
     crid_web_init();
 
