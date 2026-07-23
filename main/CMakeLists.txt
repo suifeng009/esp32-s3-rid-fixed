@@ -36,7 +36,6 @@ idf_component_register(
         json
         lwip
         bt
-        nimble
 )
 
 target_compile_options(${COMPONENT_LIB} PRIVATE -finput-charset=utf-8 -fexec-charset=utf-8)
