@@ -59,7 +59,7 @@ input[type=file]{display:none}
 </style>
 </head>
 <body>
-<header><h1>🛸 RID 无人机管理系统</h1><div class="sub">ESP32-C3 Remote ID Scanner</div></header>
+<header><h1>🛸 RID 无人机管理系统</h1><div class="sub">ESP32-S3 Remote ID Scanner</div></header>
 <nav>
 <a href="#dashboard" class="active" onclick="switchTab('dashboard')">📊 仪表盘</a>
 <a href="#drones" onclick="switchTab('drones')">🚁 无人机</a>
@@ -119,9 +119,9 @@ input[type=file]{display:none}
 </div>
 
 <div id="about" class="page">
-<div class="card" style="text-align:center"><div style="font-size:3em;margin-bottom:12px">🛸</div><h3>ESP32-C3 RID 管理系统</h3><p style="color:var(--text2);font-size:.9em;margin-top:8px">基于 OpenDroneID 标准<br>支持 GB 42590-2023 / ASTM F3411-22a<br>WiFi AP: rid / 12345678</p></div>
-<div class="card"><h3>📊 系统信息</h3><div class="detail-grid"><div class="kv"><div class="k">芯片</div><div class="v">ESP32-C3</div></div><div class="kv"><div class="k">WiFi SSID</div><div class="v">rid</div></div><div class="kv"><div class="k">在线无人机</div><div class="v" id="about-online">-</div></div><div class="kv"><div class="k">总接收数</div><div class="v" id="about-total">-</div></div><div class="kv"><div class="k">可用内存</div><div class="v" id="about-heap">-</div></div></div></div></div>
-<div class="footer">ESP32-C3 RID Scanner</div>
+<div class="card" style="text-align:center"><div style="font-size:3em;margin-bottom:12px">🛸</div><h3>ESP32-S3 RID 管理系统</h3><p style="color:var(--text2);font-size:.9em;margin-top:8px">基于 OpenDroneID 标准<br>支持 GB 42590-2023 / ASTM F3411-22a<br>WiFi AP: rid / 12345678</p></div>
+<div class="card"><h3>📊 系统信息</h3><div class="detail-grid"><div class="kv"><div class="k">芯片</div><div class="v">ESP32-S3</div></div><div class="kv"><div class="k">WiFi SSID</div><div class="v">rid</div></div><div class="kv"><div class="k">在线无人机</div><div class="v" id="about-online">-</div></div><div class="kv"><div class="k">总接收数</div><div class="v" id="about-total">-</div></div><div class="kv"><div class="k">可用内存</div><div class="v" id="about-heap">-</div></div></div></div></div>
+<div class="footer">ESP32-S3 RID Scanner</div>
 
 <script>
 var currentTab="dashboard",allUavs=[],refreshTimer=null,trajPoints=[];

@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.16)
 
 # ================================================================
-# ESP32-C3 RID Scanner + Simulator
+# ESP32-S3 RID Scanner + Simulator
 # ================================================================
 # Functions:
 #   - C-RID Sniffer & Decode (GB 42590 / ASTM F3411)
@@ -10,7 +10,7 @@ cmake_minimum_required(VERSION 3.16)
 #   - NVS Caching
 #   - Serial Debug Output
 #
-# Target: ESP32-C3 (SuperMini)
+# Target: ESP32-S3 (N16R8)
 # ================================================================
 
 set(EXTRA_COMPONENT_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/components)

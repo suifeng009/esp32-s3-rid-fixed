@@ -1,6 +1,6 @@
-# ESP32-C3 RID Scanner + Simulator
+# ESP32-S3 RID Scanner + Simulator
 
-基于 [luolitao/esp32-crid](https://github.com/luolitao/esp32-crid) 项目，为 ESP32-C3 SuperMini 开发板定制的合并固件。
+基于 [luolitao/esp32-crid](https://github.com/luolitao/esp32-crid) 项目，为 ESP32-S3 N16R8 开发板定制的合并固件。
 
 ## 功能
 
@@ -28,7 +28,7 @@
 ```bash
 git clone --recursive https://github.com/espressif/esp-idf.git
 cd esp-idf
-./install.sh esp32c3
+./install.sh esp32s3
 . ./export.sh
 ```
 
@@ -36,7 +36,7 @@ cd esp-idf
 
 ```bash
 cd esp32-rid
-idf.py set-target esp32c3
+idf.py set-target esp32s3
 idf.py build
 ```
 
@@ -51,8 +51,8 @@ idf.py -p /dev/ttyUSB0 flash monitor
 ### 合并固件（用于量产烧录）
 
 ```bash
-esptool.py --chip esp32c3 merge_bin \
-  -o esp32-c3-rid-combined.bin \
+esptool.py --chip esp32s3 merge_bin \
+  -o esp32-s3-rid-combined.bin \
   --flash_mode dio \
   --flash_freq 80m \
   --flash_size 4MB \
@@ -82,7 +82,7 @@ esptool.py --chip esp32c3 merge_bin \
 ```
 esp32-rid/
 ├── CMakeLists.txt          # 根构建文件
-├── sdkconfig.defaults      # ESP32-C3 默认配置
+├── sdkconfig.defaults      # ESP32-S3 默认配置
 ├── main/                   # 主固件代码
 │   ├── app_main.c          # 入口 + WiFi AP 初始化
 │   ├── crid_sniffer.c      # WiFi 嗅探器

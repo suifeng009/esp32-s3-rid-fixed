@@ -1,5 +1,5 @@
 /**
- * ESP32-C3 RID Combined Firmware
+ * ESP32-S3 RID Combined Firmware
  * 
  * WiFi AP: SSID "rid", Password "12345678"
  * Captive Portal auto-redirects to management UI
@@ -242,9 +242,9 @@ static void monitor_task(void *pv) {
  * Main
  * ================================================================ */
 void app_main(void) {
-    ESP_LOGI(TAG, "=== ESP32-C3 RID Scanner + Simulator ===");
+    ESP_LOGI(TAG, "=== ESP32-S3 RID Scanner + Simulator ===");
     ESP_LOGI(TAG, "WiFi AP: %s / %s", AP_SSID, AP_PASSWORD);
-    ESP_LOGI(TAG, "Target: ESP32-C3 SuperMini");
+    ESP_LOGI(TAG, "Target: ESP32-S3 N16R8");
 
     // Init NVS
     esp_err_t ret = nvs_flash_init();
