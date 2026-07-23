@@ -143,7 +143,7 @@ void crid_config_update_position(cn_crid_config_t *config,
 
 
 // --- Multi-drone simulation ---
-#define MAX_SIM_DRONES 20
+#define MAX_SIM_DRONES 100
 #define MAX_TRAJECTORY_POINTS 500
 
 // KMZ trajectory data

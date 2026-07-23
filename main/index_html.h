@@ -100,7 +100,7 @@ static const char INDEX_HTML[] =
 "\n"
 "<div class=\"card\"><h3>🔢 模拟数量</h3>\n"
 "<div class=\"range-wrap\">\n"
-"<input type=\"range\" id=\"sim-count\" min=\"1\" max=\"20\" value=\"1\" oninput=\"document.getElementById('count-val').textContent=this.value\">\n"
+"<input type=\"range\" id=\"sim-count\" min=\"1\" max=\"100\" value=\"1\" oninput=\"document.getElementById('count-val').textContent=this.value\">\n"
 "<span class=\"range-val\" id=\"count-val\">1</span>\n"
 "</div>\n"
 "<div class=\"form-row mt-sm\"><div class=\"form-group\"><label>中心纬度</label><input type=\"number\" id=\"sim-center-lat\" step=\"0.000001\" placeholder=\"39.904200\"></div><div class=\"form-group\"><label>中心经度</label><input type=\"number\" id=\"sim-center-lon\" step=\"0.000001\" placeholder=\"116.407396\"></div></div>\n"

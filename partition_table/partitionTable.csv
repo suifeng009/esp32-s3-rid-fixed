@@ -3,4 +3,4 @@
 nvs,      data, nvs,      0x9000,   32K,
 phy_init, data, phy,      0xf000,   4K,
 factory,  app,  factory,  0x10000,  2M,
-crid_nvs, data, nvs,      0x210000, 1M,
+crid_nvs, data, nvs,      0x210000, 10M,
