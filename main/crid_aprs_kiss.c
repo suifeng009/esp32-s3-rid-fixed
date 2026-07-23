@@ -7,6 +7,8 @@
 #include <string.h>
 #include <stdio.h>
 #include <math.h>
+#include <stdint.h>
+#include <assert.h>
 
 #include "nvs_flash.h"
 #include "esp_bt.h"
@@ -14,8 +16,10 @@
 #include "nimble/nimble_port_freertos.h"
 #include "host/ble_hs.h"
 #include "host/ble_uuid.h"
+#include "host/ble_gatts.h"
 #include "services/gap/ble_svc_gap.h"
 #include "services/gatt/ble_svc_gatt.h"
+#include "os/os_mbuf.h"
 
 static const char *TAG = "APRS_BLE";
 
@@ -180,16 +184,17 @@ static void format_lat_lon(double lat, double lon, char *lat_str, char *lon_str)
 static void ble_notify_data(const uint8_t *data, size_t len) {
     if (conn_handle == BLE_HS_CONN_HANDLE_NONE) return;
     
-    uint16_t mtu = ble_att_mtu(conn_handle) - 3;
-    if (mtu < 20) mtu = 20;
+    // Default BLE MTU is 23, usable payload is 20 unless negotiated larger.
+    uint16_t mtu = 20; 
 
     size_t sent = 0;
     while (sent < len) {
         size_t chunk = len - sent;
         if (chunk > mtu) chunk = mtu;
 
-        struct os_mbuf *om = ble_hs_mbuf_from_flat(data + sent, chunk);
+        struct os_mbuf *om = os_msys_get_pkthdr(chunk, 0);
         if (om) {
+            os_mbuf_append(om, data + sent, chunk);
             ble_gatts_notify_custom(conn_handle, nus_tx_handle, om);
         }
         sent += chunk;
@@ -244,9 +249,6 @@ static void aprs_ble_task(void *pvParameters) {
 void crid_aprs_ble_init(void) {
     ESP_ERROR_CHECK(esp_bt_controller_mem_release(ESP_BT_MODE_CLASSIC_BT));
     nimble_port_init();
-
-    ble_svc_gap_init();
-    ble_svc_gatt_init();
 
     int rc = ble_gatts_count_cfg(gatt_svr_svcs);
     assert(rc == 0);
