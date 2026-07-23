@@ -1,11 +1,12 @@
 # ESP32-S3 RID Scanner + Simulator
 
-基于 [luolitao/esp32-crid](https://github.com/luolitao/esp32-crid) 项目，为 ESP32-S3 N16R8 开发板定制的合并固件。
+基于 [luolitao/esp32-crid](https://github.com/luolitao/esp32-crid) 项目，专为 **ESP32-S3 N16R8 (16MB Flash, 8MB PSRAM)** 模组/开发板深度定制并优化的合并固件。充分利用大容量 Flash 和 PSRAM，提供更稳定的海量数据缓存与处理能力。
 
 ## 功能
 
 - **C-RID 嗅探与解码** — 接收并解码周围所有无人机 Remote ID 广播信号（支持 GB 42590-2023 / ASTM F3411-22a）
-- **NVS 缓存** — 自动将接收到的无人机数据缓存到 Flash，直至存储空间用尽
+- **海量 NVS 缓存 (16MB Flash)** — 自动将接收到的无人机数据缓存到 Flash。N16R8 充足的 Flash 空间可支持记录极其庞大的飞行轨迹。
+- **大内存追踪表 (8MB PSRAM)** — 启用 PSRAM 后，系统可用堆内存剧增，可同时追踪上万架在线无人机的状态而不触发 OOM。
 - **C-RID 模拟发送** — 模拟无人机发送 RID 信息，让周围接收设备可以接收和解码
 - **WiFi AP + Captive Portal** — 开发板发出名为 `rid` 的 WiFi，密码 `12345678`，手机连接后自动跳转到管理后台
 - **Web 管理后台** — 仪表盘、无人机列表、详情页（含高德地图一键导航）、模拟器参数配置
@@ -55,7 +56,7 @@ esptool.py --chip esp32s3 merge_bin \
   -o esp32-s3-rid-combined.bin \
   --flash_mode dio \
   --flash_freq 80m \
-  --flash_size 4MB \
+  --flash_size 16MB \
   0x0 build/bootloader/bootloader.bin \
   0x10000 build/esp32_crid.bin \
   0x8000 build/partition_table/partition-table.bin
