@@ -5,9 +5,9 @@
 ## 功能
 
 - **C-RID 嗅探与解码** — 接收并解码周围所有无人机 Remote ID 广播信号（支持 GB 42590-2023 / ASTM F3411-22a）
-- **海量 NVS 缓存 (16MB Flash)** — 自动将接收到的无人机数据缓存到 Flash。N16R8 充足的 Flash 空间可支持记录极其庞大的飞行轨迹。
-- **大内存追踪表 (8MB PSRAM)** — 启用 PSRAM 后，系统可用堆内存剧增，可同时追踪上万架在线无人机的状态而不触发 OOM。
-- **C-RID 模拟发送** — 模拟无人机发送 RID 信息，让周围接收设备可以接收和解码
+- **海量 NVS 缓存 (16MB Flash)** — 分配了 10MB 的超大存储区缓存无人机数据。N16R8 充足的 Flash 空间可支持脱网离线记录极其庞大的飞行轨迹。
+- **万机追踪表 (8MB PSRAM)** — 启用 PSRAM 并采用动态内存分配，同时追踪上限已解锁至 **5000 架** 在线无人机，彻底告别内存溢出 (OOM)。
+- **C-RID 模拟发送** — 支持同时模拟多达 **100 架** 无人机发送 RID 信息，用于压力测试和设备调试。
 - **WiFi AP + Captive Portal** — 开发板发出名为 `rid` 的 WiFi，密码 `12345678`，手机连接后自动跳转到管理后台
 - **Web 管理后台** — 仪表盘、无人机列表、详情页（含高德地图一键导航）、模拟器参数配置
 - **串口调试输出** — UART1 (GPIO4 TX) 输出 JSON 格式调试信息，波特率 115200
@@ -41,16 +41,22 @@ idf.py set-target esp32s3
 idf.py build
 ```
 
-### 烧录
+### 烧录固件
 
+#### 推荐方法：网页极速烧录（无需安装任何软件）
+1. 在 GitHub Actions 中下载编译好的 `esp32s3-rid-firmware.zip` 并解压得到 `esp32-s3-rid-combined.bin`。
+2. 使用 **Chrome 或 Edge 浏览器** 打开乐鑫官方网页烧录器：[https://espressif.github.io/esptool-js/](https://espressif.github.io/esptool-js/)
+3. 波特率选择 `115200`，点击 **Connect** 并选择你的开发板串口。
+4. 在下方的 **Flash Address** 输入 `0x0`。
+5. 点击 **Choose File** 选择 `esp32-s3-rid-combined.bin`，然后点击 **Program** 开始烧录。
+
+#### 高阶方法：使用 ESP-IDF 本地编译与烧录
 ```bash
 idf.py -p /dev/ttyUSB0 flash monitor
 ```
+*(Windows 上使用 COM 端口，如 `idf.py -p COM3 flash monitor`)*
 
-(Windows 上使用 COM 端口，如 `idf.py -p COM3 flash monitor`)
-
-### 合并固件（用于量产烧录）
-
+#### 高阶方法：本地生成合并固件
 ```bash
 esptool.py --chip esp32s3 merge_bin \
   -o esp32-s3-rid-combined.bin \
