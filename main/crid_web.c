@@ -528,6 +528,7 @@ void crid_web_start(void) {
     config.lru_purge_enable = true;
     config.recv_wait_timeout = 5;
     config.send_wait_timeout = 5;
+    config.max_req_hdr_len = 2048;
     
     if (httpd_start(&g_server, &config) == ESP_OK) {
         httpd_register_err_handler(g_server, HTTPD_404_NOT_FOUND, http_404_error_handler);

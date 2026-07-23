@@ -146,6 +146,7 @@ esp_err_t crid_ota_web_init(void)
     config.max_resp_headers= 8;
     config.backlog_conn    = 3;
     config.lru_purge_enable= true;
+    config.max_req_hdr_len = 2048;
 
     esp_err_t err = httpd_start(&g_httpd_handle, &config);
     if (err != ESP_OK) {
