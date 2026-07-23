@@ -11,7 +11,6 @@
 #include <assert.h>
 
 #include "nvs_flash.h"
-#include "esp_bt.h"
 #include "nimble/nimble_port.h"
 #include "nimble/nimble_port_freertos.h"
 #include "host/ble_hs.h"
@@ -247,7 +246,6 @@ static void aprs_ble_task(void *pvParameters) {
 }
 
 void crid_aprs_ble_init(void) {
-    ESP_ERROR_CHECK(esp_bt_controller_mem_release(ESP_BT_MODE_CLASSIC_BT));
     nimble_port_init();
 
     int rc = ble_gatts_count_cfg(gatt_svr_svcs);
