@@ -33,6 +33,7 @@
 #include "crid_web.h"
 #include "crid_nvs.h"
 #include "crid_serial.h"
+#include "crid_aprs_kiss.h"
 
 // Simulator
 #include "crid_config.h"
