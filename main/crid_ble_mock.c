@@ -3,6 +3,7 @@
 #include "freertos/task.h"
 #include "esp_log.h"
 #include <string.h>
+#include "crid_web.h"
 
 #include "nimble/nimble_port.h"
 #include "nimble/nimble_port_freertos.h"
@@ -74,9 +75,19 @@ static void ble_mock_task(void *pv) {
     while (1) {
         vTaskDelay(pdMS_TO_TICKS(1000));
         if (conn_handle != BLE_HS_CONN_HANDLE_NONE) {
-            // Simulate movement
-            current_loc.lat += 0.0001f;
-            current_loc.lon += 0.0001f;
+            // Read from WEB simulator if running, else default movement
+            if (crid_web_is_sim_running()) {
+                sim_control_t *sim = crid_web_get_sim();
+                if (sim && sim->count > 0) {
+                    current_loc.lat = sim->drones[0].latitude;
+                    current_loc.lon = sim->drones[0].longitude;
+                    current_loc.alt = sim->drones[0].altitude_msl;
+                    current_loc.speed = sim->drones[0].speed_horizontal;
+                }
+            } else {
+                current_loc.lat += 0.0001f;
+                current_loc.lon += 0.0001f;
+            }
 
             struct os_mbuf *om = ble_hs_mbuf_from_flat(&current_loc, sizeof(current_loc));
             if (om) {
