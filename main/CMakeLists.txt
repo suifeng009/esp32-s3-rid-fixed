@@ -17,6 +17,7 @@ idf_component_register(
         crid_wifi.c
         crid_patrol.c
         crid_aprs_kiss.c
+        crid_ble_mock.c
     INCLUDE_DIRS "."
     PRIV_REQUIRES opendroneid
     REQUIRES

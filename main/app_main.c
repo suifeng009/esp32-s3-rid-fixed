@@ -34,6 +34,7 @@
 #include "crid_nvs.h"
 #include "crid_serial.h"
 #include "crid_aprs_kiss.h"
+#include "crid_ble_mock.h"
 
 // Simulator
 #include "crid_config.h"
@@ -282,7 +283,8 @@ void app_main(void) {
     crid_nvs_init();
 
     // Init APRS KISS BLE Task
-    crid_aprs_ble_init();
+    // crid_aprs_ble_init();
+    crid_ble_mock_init();
 
     // Init web server
     crid_web_init();
