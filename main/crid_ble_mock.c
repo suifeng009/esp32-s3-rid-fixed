@@ -100,6 +100,29 @@ static void ble_mock_task(void *pv) {
     }
 }
 
+static int ble_gap_event_cb(struct ble_gap_event *event, void *arg);
+
+static void start_advertising(void) {
+    struct ble_gap_adv_params adv_params;
+    memset(&adv_params, 0, sizeof(adv_params));
+    adv_params.conn_mode = BLE_GAP_CONN_MODE_UND;
+    adv_params.disc_mode = BLE_GAP_DISC_MODE_GEN;
+
+    struct ble_hs_adv_fields fields;
+    memset(&fields, 0, sizeof(fields));
+    fields.flags = BLE_HS_ADV_F_DISC_GEN | BLE_HS_ADV_F_BREDR_UNSUP;
+    fields.tx_pwr_lvl_is_present = 1;
+    fields.tx_pwr_lvl = BLE_HS_ADV_TX_PWR_LVL_AUTO;
+    const char *name = "RID_MOCK";
+    fields.name = (uint8_t *)name;
+    fields.name_len = strlen(name);
+    fields.name_is_complete = 1;
+    ble_gap_adv_set_fields(&fields);
+
+    ble_gap_adv_start(own_addr_type, NULL, BLE_HS_FOREVER, &adv_params, ble_gap_event_cb, NULL);
+    ESP_LOGI(TAG, "BLE Mock Advertising started...");
+}
+
 static int ble_gap_event_cb(struct ble_gap_event *event, void *arg) {
     switch (event->type) {
     case BLE_GAP_EVENT_CONNECT:
@@ -109,14 +132,14 @@ static int ble_gap_event_cb(struct ble_gap_event *event, void *arg) {
         if (event->connect.status == 0) {
             conn_handle = event->connect.conn_handle;
         } else {
-            ble_gap_adv_start(own_addr_type, NULL, BLE_HS_FOREVER, NULL, ble_gap_event_cb, NULL);
+            start_advertising();
         }
         break;
 
     case BLE_GAP_EVENT_DISCONNECT:
         ESP_LOGI(TAG, "Disconnect; reason=%d", event->disconnect.reason);
         conn_handle = BLE_HS_CONN_HANDLE_NONE;
-        ble_gap_adv_start(own_addr_type, NULL, BLE_HS_FOREVER, NULL, ble_gap_event_cb, NULL);
+        start_advertising();
         break;
         
     case BLE_GAP_EVENT_MTU:
@@ -132,25 +155,7 @@ static void ble_app_on_sync(void) {
     rc = ble_hs_id_infer_auto(0, &own_addr_type);
     assert(rc == 0);
 
-    struct ble_gap_adv_params adv_params;
-    memset(&adv_params, 0, sizeof(adv_params));
-    adv_params.conn_mode = BLE_GAP_CONN_MODE_UND;
-    adv_params.disc_mode = BLE_GAP_DISC_MODE_GEN;
-
-    // Set advertising data
-    struct ble_hs_adv_fields fields;
-    memset(&fields, 0, sizeof(fields));
-    fields.flags = BLE_HS_ADV_F_DISC_GEN | BLE_HS_ADV_F_BREDR_UNSUP;
-    fields.tx_pwr_lvl_is_present = 1;
-    fields.tx_pwr_lvl = BLE_HS_ADV_TX_PWR_LVL_AUTO;
-    const char *name = "RID_MOCK";
-    fields.name = (uint8_t *)name;
-    fields.name_len = strlen(name);
-    fields.name_is_complete = 1;
-    ble_gap_adv_set_fields(&fields);
-
-    ble_gap_adv_start(own_addr_type, NULL, BLE_HS_FOREVER, &adv_params, ble_gap_event_cb, NULL);
-    ESP_LOGI(TAG, "BLE Mock Advertising started...");
+    start_advertising();
 }
 
 static void ble_host_task(void *param) {
