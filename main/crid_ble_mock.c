@@ -166,9 +166,6 @@ void crid_ble_mock_init(void) {
     
     ble_hs_cfg.sync_cb = ble_app_on_sync;
     
-    ble_svc_gap_init();
-    ble_svc_gatt_init();
-    
     int rc = ble_gatts_count_cfg(gatt_svr_svcs);
     assert(rc == 0);
     
@@ -177,5 +174,5 @@ void crid_ble_mock_init(void) {
 
     nimble_port_freertos_init(ble_host_task);
     
-    xTaskCreate(ble_mock_task, "ble_mock_timer", 2048, NULL, 5, NULL);
+    xTaskCreate(ble_mock_task, "ble_mock_timer", 4096, NULL, 5, NULL);
 }
