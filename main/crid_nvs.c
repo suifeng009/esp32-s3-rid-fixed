@@ -10,6 +10,7 @@ static const char *TAG = "CRID_NVS";
 static const char *NVS_NS = "crid_cache";
 static nvs_handle_t g_nvs;
 static int32_t g_count = 0;
+static bool g_nvs_dirty = false;
 
 void crid_nvs_init(void) {
     esp_err_t err = nvs_open(NVS_NS, NVS_READWRITE, &g_nvs);
@@ -39,8 +40,16 @@ bool crid_nvs_save_uav(const uav_track_t *uav) {
         g_count++;
         nvs_set_i32(g_nvs, "total_count", g_count);
     }
-    nvs_commit(g_nvs);
+    g_nvs_dirty = true; // Batched write
     return true;
+}
+
+void crid_nvs_commit(void) {
+    if (g_nvs && g_nvs_dirty) {
+        nvs_commit(g_nvs);
+        g_nvs_dirty = false;
+        ESP_LOGD(TAG, "NVS batch commit applied");
+    }
 }
 
 int crid_nvs_get_total_count(void) { return g_count; }

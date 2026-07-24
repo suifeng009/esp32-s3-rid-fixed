@@ -175,7 +175,6 @@ static void ble_notify_data(const uint8_t *data, size_t len) {
 
 static void aprs_ble_task(void *pvParameters) {
     char aprs_msg[128];
-    uint8_t kiss_buf[256];
     char lat_str[10];
     char lon_str[11];
 
@@ -185,32 +184,51 @@ static void aprs_ble_task(void *pvParameters) {
         if (conn_handle == BLE_HS_CONN_HANDLE_NONE) continue;
 
         SemaphoreHandle_t mutex = crid_tracker_get_mutex();
-        if (xSemaphoreTake(mutex, pdMS_TO_TICKS(100)) == pdTRUE) {
-            uav_track_t *table = crid_tracker_get_table();
-            for (int i = 0; i < MAX_TRACKED_UAVS; i++) {
+        uav_track_t *table = crid_tracker_get_table();
+        
+        for (int i = 0; i < MAX_TRACKED_UAVS; i++) {
+            bool has_data = false;
+            uint8_t mac[6];
+            double latitude, longitude;
+            float direction, speed_horizontal, altitude_geo;
+            
+            if (xSemaphoreTake(mutex, pdMS_TO_TICKS(100)) == pdTRUE) {
                 if (table[i].active && table[i].location.valid) {
-                    char uav_id[16];
-                    snprintf(uav_id, sizeof(uav_id), "U%02X%02X%02X", 
-                             table[i].mac[3], table[i].mac[4], table[i].mac[5]);
-                    
-                    format_lat_lon(table[i].location.latitude, table[i].location.longitude, lat_str, lon_str);
-                    
-                    int course = (int)(table[i].location.direction);
-                    if (course < 0 || course > 360) course = 0;
-                    if (course == 0) course = 360; 
-                    
-                    int speed_knots = (int)(table[i].location.speed_horizontal * 1.94384f);
-                    int alt_feet = (int)(table[i].location.altitude_geo * 3.28084f);
-                    if (alt_feet < 0) alt_feet = 0;
-                    
-                    snprintf(aprs_msg, sizeof(aprs_msg),
-                             "%s>APRS,TCPIP*:!%s/%s^%03d/%03d/A=%06d\r\n",
-                             uav_id, lat_str, lon_str, course, speed_knots, alt_feet);
-                             
-                    ble_notify_data((const uint8_t *)aprs_msg, strlen(aprs_msg));
+                    has_data = true;
+                    memcpy(mac, table[i].mac, 6);
+                    latitude = table[i].location.latitude;
+                    longitude = table[i].location.longitude;
+                    direction = table[i].location.direction;
+                    speed_horizontal = table[i].location.speed_horizontal;
+                    altitude_geo = table[i].location.altitude_geo;
                 }
+                xSemaphoreGive(mutex);
             }
-            xSemaphoreGive(mutex);
+            
+            if (has_data) {
+                char uav_id[16];
+                snprintf(uav_id, sizeof(uav_id), "U%02X%02X%02X", mac[3], mac[4], mac[5]);
+                
+                format_lat_lon(latitude, longitude, lat_str, lon_str);
+                
+                int course = (int)direction;
+                if (course < 0 || course > 360) course = 0;
+                if (course == 0) course = 360; 
+                
+                int speed_knots = (int)(speed_horizontal * 1.94384f);
+                int alt_feet = (int)(altitude_geo * 3.28084f);
+                if (alt_feet < 0) alt_feet = 0;
+                
+                snprintf(aprs_msg, sizeof(aprs_msg),
+                         "%s>APRS,TCPIP*:!%s/%s^%03d/%03d/A=%06d\r\n",
+                         uav_id, lat_str, lon_str, course, speed_knots, alt_feet);
+                         
+                ble_notify_data((const uint8_t *)aprs_msg, strlen(aprs_msg));
+            }
+            
+            if ((i % 100) == 0) {
+                vTaskDelay(1); // Yield occasionally during the long array iteration
+            }
         }
     }
 }

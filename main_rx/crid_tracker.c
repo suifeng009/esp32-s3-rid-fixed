@@ -10,7 +10,7 @@
 /* ---- 模块内部状态 ---- */
 
 static SemaphoreHandle_t g_tracker_mutex = NULL;
-static uav_track_t       *g_uavs = NULL;
+static uav_track_t       g_uavs[MAX_TRACKED_UAVS];
 static uint32_t          g_start_time_ms = 0;
 
 /* ---- MAC 比较 ---- */
@@ -22,18 +22,7 @@ static inline bool mac_equal(const uint8_t *a, const uint8_t *b) {
 /* ---- 公开接口 ---- */
 
 void crid_tracker_init(void) {
-    if (g_uavs == NULL) {
-        g_uavs = (uav_track_t *)heap_caps_calloc(MAX_TRACKED_UAVS, sizeof(uav_track_t), MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT);
-        if (!g_uavs) {
-            ESP_LOGE("CRID_TRACKER", "Failed to allocate memory for UAV tracking table in PSRAM! Falling back to internal RAM...");
-            g_uavs = (uav_track_t *)calloc(MAX_TRACKED_UAVS, sizeof(uav_track_t));
-            if (!g_uavs) {
-                ESP_LOGE("CRID_TRACKER", "Failed to allocate memory for UAV tracking table anywhere! System may crash.");
-                return;
-            }
-        }
-    }
-    memset(g_uavs, 0, MAX_TRACKED_UAVS * sizeof(uav_track_t));
+    memset(g_uavs, 0, sizeof(g_uavs));
     g_start_time_ms = esp_log_timestamp();
 
     g_tracker_mutex = xSemaphoreCreateMutex();

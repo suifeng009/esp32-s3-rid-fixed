@@ -12,6 +12,7 @@ extern "C" {
 
 void crid_nvs_init(void);
 bool crid_nvs_save_uav(const uav_track_t *uav);
+void crid_nvs_commit(void);
 int crid_nvs_load_all(uav_track_t *buffer, int max_count);
 int crid_nvs_get_total_count(void);
 const uav_track_t *crid_nvs_get_by_index(int index);

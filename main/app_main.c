@@ -95,26 +95,29 @@ static void sniffer_task(void *pv) {
     QueueHandle_t q = crid_sniffer_get_queue();
     SemaphoreHandle_t mtx = crid_tracker_get_mutex();
     sniffer_msg_t msg;
-    uint32_t last_cleanup = 0;
 
     while (1) {
         if (xQueueReceive(q, &msg, pdMS_TO_TICKS(1000)) != pdTRUE) continue;
         if (msg.msg_type != MSG_TYPE_RID) continue;
 
+        // Verify payload validity here instead of inside ISR
+        ODID_UAS_Data temp_uas_data;
+        memset(&temp_uas_data, 0, sizeof(temp_uas_data));
+        if (decodeMessagePack(&temp_uas_data, (ODID_MessagePack_encoded *)msg.data) < 0) {
+            continue; // Invalid RID payload, skip to avoid polluting tracker
+        }
+
         if (xSemaphoreTake(mtx, pdMS_TO_TICKS(100)) != pdTRUE) continue;
 
         uav_track_t *uav = crid_tracker_find_or_create(msg.src_mac);
         if (!uav) {
-            uint32_t now = esp_log_timestamp();
-            if (now - last_cleanup >= 10000) {
-                crid_tracker_cleanup(UAV_TIMEOUT_MS);
-                last_cleanup = now;
-                uav = crid_tracker_find_or_create(msg.src_mac);
-            }
-            if (!uav) { xSemaphoreGive(mtx); continue; }
+            xSemaphoreGive(mtx);
+            continue;
         }
 
         bool was_new = (uav->msg_count == 0);
+        uav->msg_count++;
+        uav->last_seen_ms = esp_log_timestamp();
         uav->last_rssi = msg.rssi;
         uav->last_channel = msg.channel;
         memcpy(uav->oui, msg.oui, 3);
@@ -175,7 +178,7 @@ static void simulator_task(void *pv) {
                 if (crid_build_beacon_frame(cfg, g_beacon_frame, sizeof(g_beacon_frame), &g_beacon_frame_len)) {
                     crid_wifi_send_raw_frame(g_beacon_frame, g_beacon_frame_len);
                 }
-                vTaskDelay(pdMS_TO_TICKS(g_sim.trajectory.speed > 0 ? (int)(1000.0 / g_sim.trajectory.speed) : 100));
+                vTaskDelay(pdMS_TO_TICKS(5)); // Fixed inter-drone delay
             }
             
             g_sim.trajectory.current_index++;
@@ -225,6 +228,15 @@ static void simulator_task(void *pv) {
 static void monitor_task(void *pv) {
     while (1) {
         vTaskDelay(pdMS_TO_TICKS(5000));
+        
+        crid_nvs_commit(); // periodically commit dirty flash writes
+        
+        SemaphoreHandle_t mtx = crid_tracker_get_mutex();
+        if (xSemaphoreTake(mtx, pdMS_TO_TICKS(100)) == pdTRUE) {
+            crid_tracker_cleanup(UAV_TIMEOUT_MS);
+            xSemaphoreGive(mtx);
+        }
+        
         int online = crid_tracker_get_active_count();
         int total = crid_nvs_get_total_count();
         char buf[256];

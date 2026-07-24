@@ -109,45 +109,40 @@ static void wifi_sniffer_cb(void *buf, wifi_promiscuous_pkt_type_t type) {
                     has_rid_ie = true;
                     g_stats.rid_detections++;
 
-                    // 【修正】跳过 ID+Len+OUI+Type+Counter = 7 字节
+                    // 提取并跳过 ID+Len+OUI+Type+Counter = 7 字节
                     uint8_t *odid_payload = &ie_ptr[i + 7];
                     // 有效数据长度 = Len - 5 (OUI+Type+Counter)
                     uint8_t odid_len = len - 5;
 
-                    // 调用 OpenDroneID 库解码
-                    ODID_UAS_Data uas_data;
-                    memset(&uas_data, 0, sizeof(uas_data));
-                    int decode_ret = decodeMessagePack(&uas_data, (ODID_MessagePack_encoded *)odid_payload);
+                    // 优化：不在 ISR 中进行 decodeMessagePack 解析，直接压入队列
+                    sniffer_msg_t msg;
+                    memset(&msg, 0, sizeof(msg));
 
-                    if (decode_ret >= 0) {
-                        sniffer_msg_t msg;
-                        memset(&msg, 0, sizeof(msg));
+                    memcpy(msg.src_mac, hdr->addr2, 6);
+                    msg.rssi = pkt->rx_ctrl.rssi;
+                    msg.channel = pkt->rx_ctrl.channel;
+                    msg.timestamp_ms = (uint32_t)(xTaskGetTickCountFromISR() * portTICK_PERIOD_MS);
+                    msg.is_rid = true;
+                    msg.msg_type = MSG_TYPE_RID;
+                    msg.oui[0] = oui0; msg.oui[1] = oui1; msg.oui[2] = oui2;
+                    msg.oui_type = oui_type;
+                    msg.has_vendor_ie = true;
 
-                        memcpy(msg.src_mac, hdr->addr2, 6);
-                        msg.rssi = pkt->rx_ctrl.rssi;
-                        msg.channel = pkt->rx_ctrl.channel;
-                        msg.timestamp_ms = (uint32_t)(xTaskGetTickCountFromISR() * portTICK_PERIOD_MS);
-                        msg.is_rid = true;
-                        msg.msg_type = MSG_TYPE_RID;
-                        msg.oui[0] = oui0; msg.oui[1] = oui1; msg.oui[2] = oui2;
-                        msg.oui_type = oui_type;
-                        msg.has_vendor_ie = true;
+                    memcpy(msg.ssid, ssid, ssid_len);
+                    msg.ssid_len = ssid_len;
 
-                        memcpy(msg.ssid, ssid, ssid_len);
-                        msg.ssid_len = ssid_len;
+                    // 复制原始数据 (最大 250 字节，放入 256 字节的 msg.data)
+                    uint16_t copy_len = odid_len;
+                    if (copy_len > sizeof(msg.data)) copy_len = sizeof(msg.data);
+                    memcpy(msg.data, odid_payload, copy_len);
+                    msg.data_len = copy_len;
 
-                        // 复制 ODID 原始数据（odid_len 最大 250，msg.data 至少 256 字节，安全）
-                        uint16_t copy_len = odid_len;
-                        memcpy(msg.data, odid_payload, copy_len);
-                        msg.data_len = copy_len;
-
-                        BaseType_t xHigherPriorityTaskWoken = pdFALSE;
-                        if (xQueueSendFromISR(g_sniffer_queue, &msg, &xHigherPriorityTaskWoken) != pdTRUE) {
-                            g_stats.queue_overflows++;
-                        }
-                        portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
+                    BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+                    if (xQueueSendFromISR(g_sniffer_queue, &msg, &xHigherPriorityTaskWoken) != pdTRUE) {
+                        g_stats.queue_overflows++;
                     }
-                    // 解码失败不统计，避免干扰
+                    portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
+                    
                     break;  // 一个帧只应有一个 RID IE
                 } else {
                     g_stats.non_rid_vendor_ie++;
