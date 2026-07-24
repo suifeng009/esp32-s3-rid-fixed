@@ -8,6 +8,7 @@
 #include "nimble/nimble_port_freertos.h"
 #include "host/ble_hs.h"
 #include "host/ble_uuid.h"
+#include "host/util/util.h"
 #include "services/gap/ble_svc_gap.h"
 #include "services/gatt/ble_svc_gatt.h"
 #include "os/os_mbuf.h"
@@ -34,8 +35,8 @@ typedef struct {
 #pragma pack(pop)
 
 static mock_loc_t current_loc = {
-    .lat = 39.9042f, // Beijing
-    .lon = 116.4074f,
+    .lat = 24.9433f, // Quanzhou Qingyuan Mountain
+    .lon = 118.6015f,
     .alt = 100.0f,
     .speed = 5.0f
 };
@@ -97,14 +98,14 @@ static int ble_gap_event_cb(struct ble_gap_event *event, void *arg) {
         if (event->connect.status == 0) {
             conn_handle = event->connect.conn_handle;
         } else {
-            ble_gap_adv_start(own_addr_type, NULL, BLE_HS_FOREVER, NULL, NULL, NULL, NULL);
+            ble_gap_adv_start(own_addr_type, NULL, BLE_HS_FOREVER, NULL, ble_gap_event_cb, NULL);
         }
         break;
 
     case BLE_GAP_EVENT_DISCONNECT:
         ESP_LOGI(TAG, "Disconnect; reason=%d", event->disconnect.reason);
         conn_handle = BLE_HS_CONN_HANDLE_NONE;
-        ble_gap_adv_start(own_addr_type, NULL, BLE_HS_FOREVER, NULL, NULL, NULL, NULL);
+        ble_gap_adv_start(own_addr_type, NULL, BLE_HS_FOREVER, NULL, ble_gap_event_cb, NULL);
         break;
         
     case BLE_GAP_EVENT_MTU:
